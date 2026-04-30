@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
@@ -9,6 +9,7 @@ interface VoiceInputProps {
 
 export default function VoiceInput({ onTranscript }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
   const onTranscriptRef = useRef(onTranscript);
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
