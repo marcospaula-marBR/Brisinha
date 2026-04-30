@@ -38,4 +38,4 @@ Brisinha é um web app conversacional público com suporte a voz, backend leve e
 - `app/api/`: Route Handlers (API).
 - `components/`: Componentes React (Chat, Onboarding, Voz).
 - `lib/`: Utilitários, validadores e cliente Supabase.
-- `public/`: Arquivos estáticos (Avatar).
+- `public/`: Arquivos estáticos  (Avatar).
