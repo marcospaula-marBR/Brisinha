@@ -9,7 +9,7 @@ interface VoiceInputProps {
 
 export default function VoiceInput({ onTranscript }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  const recognitionRef = useRef<any>(null);
   const onTranscriptRef = useRef(onTranscript);
   useEffect(() => {
     onTranscriptRef.current = onTranscript;
@@ -44,22 +44,21 @@ export default function VoiceInput({ onTranscript }: VoiceInputProps) {
         recognitionInstance.onend = () => {
           setIsListening(false);
         };
-
-        setRecognition(recognitionInstance);
+        recognitionRef.current = recognitionInstance;
       }
     }
   }, []);
 
   const toggleListening = () => {
-    if (!recognition) {
+    if (!recognitionRef.current) {
       alert('Reconhecimento de voz não suportado neste navegador.');
       return;
     }
 
     if (isListening) {
-      recognition.stop();
+      recognitionRef.current.stop();
     } else {
-      recognition.start();
+      recognitionRef.current.start();
     }
   };
 
