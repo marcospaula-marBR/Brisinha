@@ -9,15 +9,16 @@ const CULTURA_PAGE_URL = 'https://marbr.com.br/cultura.html';
 
 // Contexto fixo usado quando o fetch da página falhar
 const CULTURA_FALLBACK_TEXT = `
-Mar Brasil é uma empresa que une paixão pelo oceano, surf, esportes aquáticos e sustentabilidade.
-Nossa cultura valoriza autenticidade, liberdade, inovação e profundo respeito ao mar e ao meio ambiente.
-Acreditamos em pessoas apaixonadas, times unidos e um propósito maior: conectar as pessoas ao mar de forma responsável.
-Nossos valores: Transparência, Coragem, Colaboração, Sustentabilidade e Alegria.
+Mar Brasil Climatização é especialista em Climatização com Autossuficiência Energética para Escolas Públicas.
+Nossa missão é levar conforto térmico e máxima qualidade do ar para alunos e professores em todo o Brasil.
+Nossa cultura é baseada na Meritocracia Afetiva e na Doutrina Operacional (Respeito, Disciplina, Técnica, Limpeza e Segurança).
+Nosso símbolo é o Hexágono, representando nossa união, inteligência coletiva e resistência.
+Lema: "O nosso compromisso é com a qualidade do ar que você respira".
 `;
 
 const FALLBACK_RESPONSE = {
-  short: 'A Mar Brasil vive o mar! Venha conhecer nossa cultura de paixão, propósito e conexão com o oceano.',
-  long: 'A Mar Brasil é uma empresa apaixonada pelo oceano e pela cultura do mar. Nossos valores de autenticidade, coragem e sustentabilidade nos guiam a cada dia. Aqui você vai descobrir nossa essência, nossa missão e o que nos une como time. Que tal começar pelo nosso vídeo de cultura?',
+  short: 'Bem-vindo! Sou o Brisinha. Vamos transformar a educação no Brasil através da climatização sustentável!',
+  long: 'A Mar Brasil é movida pelo propósito de levar conforto térmico e ar puro para as escolas públicas do nosso país. Nossa essência é técnica, humana e sustentável. Aqui você vai descobrir como o nosso Hexágono nos une em torno da Meritocracia Afetiva. Que tal começar pelo nosso vídeo de cultura?',
   videoUrl: VIDEO_URL,
   culturaUrl: CULTURA_PAGE_URL,
 };
@@ -64,16 +65,22 @@ export async function GET() {
     const model = genAI.getGenerativeModel({ model: 'models/gemini-1.5-flash' });
 
     const prompt = `
-Com base no conteúdo abaixo sobre a cultura da empresa Mar Brasil, gere DOIS textos em português brasileiro informal e caloroso:
+      Você é o "Brisinha", embaixador da cultura Mar Brasil Climatização.
+      Baseado no conteúdo abaixo, gere DOIS textos calorosos e inspiradores:
 
-1. CURTO (para leitura em voz alta, máximo 2 frases, ~150 caracteres): Uma frase de apresentação vibrante do Manual de Cultura Mar Brasil.
-2. LONGO (para exibição em balão de chat, máximo 4 frases, ~400 caracteres): Um resumo envolvente dos valores e essência da cultura Mar Brasil, convidando o usuário a explorar mais.
+      DIRETRIZES:
+      - Foque em Climatização, Escolas Públicas e Qualidade do Ar.
+      - Use os termos "Meritocracia Afetiva" e o símbolo do "Hexágono".
+      - NÃO mencione oceanos ou praias. O "Mar" no nome é institucional.
+      - O tom deve ser vibrante, humano e focado em transformar a educação.
 
-Responda APENAS no formato JSON puro, sem markdown, sem explicação:
-{"short": "...", "long": "..."}
+      1. CURTO (Voz alta, ~150 caracteres): Apresentação vibrante focada em climatização e educação.
+      2. LONGO (Chat, ~400 caracteres): Resumo envolvente dos valores (Respeito, Disciplina, Técnica, Limpeza, Segurança) e do propósito de cuidar do ar que respiramos.
 
-Conteúdo:
-${culturaText}
+      Responda APENAS JSON puro: {"short": "...", "long": "..."}
+
+      Conteúdo:
+      ${culturaText}
     `.trim();
 
     console.log('[/api/intro] Chamando Gemini...');
