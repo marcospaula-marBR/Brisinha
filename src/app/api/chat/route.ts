@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabaseServer';
 import { isRateLimited, getClientIp } from '@/lib/rateLimit';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req);
@@ -49,7 +51,7 @@ export async function POST(req: Request) {
     let sources: string[] = [];
 
     if (!apiKey || apiKey === 'sua_chave_aqui') {
-      answer = 'Olá! Sou o Brisinha. No momento estou sem minha conexão cerebral (API Key), mas posso te dizer que a Mar Brasil foca em climatização de escolas públicas!';
+      answer = 'Brisinha operacional, mas o cérebro Gemini não respondeu! (API Key ausente ou inválida no Vercel). Mesmo assim, eu sei que a Mar Brasil é o Hexágono da climatização!';
     } else {
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(apiKey);
