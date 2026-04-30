@@ -46,6 +46,37 @@ export default function Chat({ visitorId, hasProfile: initialHasProfile, userNam
     scrollToBottom();
   }, [messages]);
 
+  const fetchCulture = useCallback(async () => {
+    setIsIntroLoading(true);
+    const introController = new AbortController();
+    const introTimeout = setTimeout(() => introController.abort(), 8000);
+
+    try {
+      const res = await fetch('/api/intro', { signal: introController.signal });
+      const data = await res.json();
+      clearTimeout(introTimeout);
+
+      const introMsg: Message = {
+        id: 'culture-intro-' + Date.now(),
+        sender: 'brisinha',
+        text: data.long || '',
+        type: 'culture',
+        cultureData: {
+          long: data.long,
+          videoUrl: data.videoUrl,
+          culturaUrl: data.culturaUrl,
+        },
+        createdAt: new Date(),
+      };
+      setMessages((prev) => [...prev, introMsg]);
+      setTimeout(() => speak(data.short || data.long), 1500);
+    } catch (e) {
+      console.error('Falha ao carregar cultura', e);
+    } finally {
+      setIsIntroLoading(false);
+    }
+  }, [speak]);
+
   // Saudação por voz + carregamento do intro
   useEffect(() => {
     if (greeted.current) return;
@@ -55,51 +86,17 @@ export default function Chat({ visitorId, hasProfile: initialHasProfile, userNam
       ? `Olá, ${userName}! Que bom te ver de novo!`
       : 'Olá! Eu sou o Brisinha, o assistente da Mar Brasil. Que bom que você está aqui!';
 
-    // Aguarda um instante para que as vozes do browser estejam prontas
     const timer = setTimeout(() => speak(greeting), 800);
 
     if (isFirstVisit) {
-      setIsIntroLoading(true);
-      const introController = new AbortController();
-      const introTimeout = setTimeout(() => introController.abort(), 8000);
-
-      fetch('/api/intro', { signal: introController.signal })
-        .then((r) => r.json())
-        .then((data) => {
-          clearTimeout(introTimeout);
-          const introMsg: Message = {
-            id: 'culture-intro',
-            sender: 'brisinha',
-            text: data.long || '',
-            type: 'culture',
-            cultureData: {
-              long: data.long,
-              videoUrl: data.videoUrl,
-              culturaUrl: data.culturaUrl,
-            },
-            createdAt: new Date(),
-          };
-          setMessages([introMsg]);
-          // Fala o texto curto após a saudação
-          setTimeout(() => speak(data.short || data.long), 3000);
-        })
-        .catch(() => {
-          setMessages([{
-            id: 'welcome',
-            sender: 'brisinha',
-            text: 'Olá! Bem-vindo à Mar Brasil. Estou aqui para te apresentar nossa cultura. Me pergunte qualquer coisa!',
-            type: 'text',
-            createdAt: new Date(),
-          }]);
-        })
-        .finally(() => setIsIntroLoading(false));
+      fetchCulture();
     } else {
       setMessages([{
         id: 'welcome',
         sender: 'brisinha',
         text: hasProfile && userName
-          ? `Que saudade, ${userName}! Como posso te ajudar hoje?`
-          : 'Olá! Estou aqui para te apresentar a cultura da Mar Brasil. Me pergunte qualquer coisa!',
+          ? `Que saudade, ${userName}! Como posso te ajudar a transformar a educação hoje?`
+          : 'Olá! Sou o Brisinha. Quer que eu te conte um pouco mais sobre nossa cultura de climatização nas escolas?',
         type: 'text',
         createdAt: new Date(),
       }]);
@@ -233,8 +230,13 @@ export default function Chat({ visitorId, hasProfile: initialHasProfile, userNam
               {isIntroLoading ? 'Pensando...' : 'Online'}
             </span>
           </div>
-        </div>
         {userName && <span className="chat-user-tag">Olá, {userName}!</span>}
+        <button className="culture-retry-btn" onClick={fetchCulture} title="Ver Manual de Cultura">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+          </svg>
+          <span>Manual</span>
+        </button>
       </header>
 
       <div className="chat-messages">

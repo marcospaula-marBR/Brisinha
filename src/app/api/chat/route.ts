@@ -43,43 +43,45 @@ export async function POST(req: Request) {
       .select('id, title, embed_url, primary_url, short_summary, tags')
       .eq('published', true);
 
-    const lowerMessage = message.toLowerCase();
+    const apiKey = process.env.GEMINI_API_KEY;
     let answer = '';
     let recommended_content: any[] = [];
     let sources: string[] = [];
 
-    const restrictedKeywords = ['salario', 'faturamento', 'senha', 'interno', 'restrito', 'documento', 'contrato'];
-    const isRestricted = restrictedKeywords.some((kw) => lowerMessage.includes(kw));
-
-    if (isRestricted) {
-      answer = 'O MVP do Brisinha cobre apenas materiais públicos. Para informações internas ou restritas, por favor utilize os canais oficiais da empresa.';
+    if (!apiKey || apiKey === 'sua_chave_aqui') {
+      answer = 'Olá! Sou o Brisinha. No momento estou sem minha conexão cerebral (API Key), mas posso te dizer que a Mar Brasil foca em climatização de escolas públicas!';
     } else {
-      const matchingContent = contents?.find((item: any) => {
-        const titleMatch = item.title.toLowerCase().includes(lowerMessage);
-        let tagsMatch = false;
-        try {
-          const tags = typeof item.tags === 'string' ? JSON.parse(item.tags) : item.tags;
-          tagsMatch = Array.isArray(tags) && tags.some((t: string) => lowerMessage.includes(t.toLowerCase()));
-        } catch {}
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'models/gemini-1.5-flash' });
+
+      const cultureContext = `
+        Você é o "Brisinha", o embaixador inteligente da Mar Brasil Climatização.
+        Sua personalidade: Amigável, técnico, inspirador e muito orgulhoso da empresa.
         
-        const isCulturaQuery = lowerMessage.includes('cultura') || lowerMessage.includes('onboarding') || lowerMessage.includes('institucional');
-        const isCulturaItem = item.title.includes('Cultura Mar Brasil');
+        CONHECIMENTO BASE (Manual de Cultura):
+        - Foco: Climatização com Autossuficiência Energética para Escolas Públicas.
+        - Missão: Melhorar a educação no Brasil através do ar puro e conforto térmico.
+        - Valores: Meritocracia Afetiva (mérito + empatia), Doutrina Operacional (Respeito, Disciplina, Técnica, Limpeza, Segurança).
+        - Símbolo: O Hexágono (União e Resistência).
+        - Lema: "O nosso compromisso é com a qualidade do ar que você respira".
 
-        return titleMatch || tagsMatch || (isCulturaQuery && isCulturaItem);
-      });
+        REGRAS DE RESPOSTA:
+        1. Se o usuário disser "Ola", "Oi" ou saudações, responda de forma calorosa e convide-o a conhecer a cultura.
+        2. Responda sempre com base nos valores da Mar Brasil.
+        3. Mantenha as respostas curtas e diretas (máximo 3 parágrafos).
+        4. NÃO use o tema "mar/oceano" literalmente, foque em climatização e educação.
+      `;
 
-      if (matchingContent) {
-        answer = `Encontrei um conteúdo relevante para você: **${matchingContent.title}**.`;
-        recommended_content.push({
-          title: matchingContent.title,
-          embed_url: matchingContent.embed_url,
-          primary_url: matchingContent.primary_url,
-          short_summary: matchingContent.short_summary,
-        });
-        sources.push(matchingContent.primary_url);
-      } else {
-        answer = 'No momento, não encontrei materiais públicos específicos sobre esse assunto na minha base de dados.';
-      }
+      const prompt = `
+        Contexto: ${cultureContext}
+        Mensagem do Usuário: "${message}"
+        
+        Responda como o Brisinha:
+      `;
+
+      const result = await model.generateContent(prompt);
+      answer = result.response.text().trim();
     }
 
     await supabaseServer.from('chat_history').insert({
